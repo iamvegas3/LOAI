@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOAI - Web AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center min-h-screen">
+  <h1 class="text-2xl font-bold text-gray-800 mt-6 mb-4">🤖 LOAI Web AI</h1>
+
+  <div id="chat-box" class="w-full max-w-md bg-white shadow-md rounded-lg p-4 overflow-y-auto flex-1 mb-4" style="height: 60vh;">
+    <div id="messages" class="space-y-2 text-sm text-gray-800"></div>
+  </div>
+
+  <div class="w-full max-w-md flex mb-6">
+    <input id="user-input" type="text" placeholder="Type your message..."
+      class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300" />
+    <button id="send-btn"
+      class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600">Send</button>
+  </div>
+
+  <footer class="text-gray-400 text-xs mb-3">
+    Powered by LOAI (ChatGPT-style AI)
+  </footer>
+
+  <script>
+    const sendBtn = document.getElementById('send-btn');
+    const userInput = document.getElementById('user-input');
+    const messagesDiv = document.getElementById('messages');
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      appendMessage("You", text);
+      userInput.value = "";
+
+      appendMessage("LOAI", "Typing...");
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        messagesDiv.lastChild.innerHTML = `<b>LOAI:</b> ${data.reply || "No reply"}`;
+      } catch (err) {
+        messagesDiv.lastChild.innerHTML = `<b>LOAI:</b> Error connecting to server.`;
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.innerHTML = `<b>${sender}:</b> ${text}`;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>
