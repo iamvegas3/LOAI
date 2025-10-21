@@ -1,16 +1,27 @@
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Serve frontend
+app.use(express.static(path.join(__dirname, "public")));
+
+// MOCK AI ENDPOINT (temporary)
 app.post("/api/chat", async (req, res) => {
-  try {
-    const message = req.body.message;
-    if (!message) return res.status(400).json({ error: "Message required" });
+  const message = req.body.message;
+  if (!message) return res.status(400).json({ error: "Message required" });
 
-    // TEMPORARY MOCK RESPONSE for testing without OpenAI
-    const mockReply = `LOAI says: I received your message -> "${message}"`;
-
-    // Send it back like a real API
-    return res.json({ reply: mockReply });
-
-  } catch (err) {
-    console.error("Server error:", err);
-    res.json({ reply: `Server error: ${err.message}` });
-  }
+  const mockReply = `LOAI says: I received your message -> "${message}"`;
+  res.json({ reply: mockReply });
 });
+
+// Serve frontend index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`LOAI AI (mock) running on port ${port}`));
