@@ -7,10 +7,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// serve static frontend
+// serve frontend
 app.use(express.static(path.join(__dirname, "public")));
 
-// AI endpoint
 app.post("/api/chat", async (req, res) => {
   try {
     const message = req.body.message;
@@ -27,23 +26,29 @@ app.post("/api/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: message }],
-        max_tokens: 600
+        messages: [
+          { role: "system", content: "You are LOAI, a helpful AI assistant." },
+          { role: "user", content: message }
+        ],
+        max_tokens: 600,
+        temperature: 0.7
       })
     });
 
     const data = await response.json();
 
-    if (data.error) return res.status(500).json({ error: data.error.message });
+    if (!data.choices || !data.choices[0].message || !data.choices[0].message.content) {
+      console.error("OpenAI response error:", data);
+      return res.json({ reply: "Error: no response from OpenAI" });
+    }
 
     res.json({ reply: data.choices[0].message.content });
   } catch (err) {
     console.error("Server error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.json({ reply: `Server error: ${err.message}` });
   }
 });
 
-// serve index.html for frontend
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
